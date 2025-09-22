@@ -250,6 +250,25 @@ const ColorPickerApp: FC<{ user: User | null; onLogin: (user: User) => void; onL
     }, []);
 
     // --- Drawing Logic ---
+    // Download handler
+    const handleDownloadImage = () => {
+        if (!image) return;
+        const canvas = document.createElement('canvas');
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.drawImage(image, 0, 0);
+            if (sketchCanvasRef.current) ctx.drawImage(sketchCanvasRef.current, 0, 0);
+        }
+        const url = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'edited-image.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     const draw = useCallback(() => {
         const canvas = canvasRef.current;
@@ -1258,6 +1277,15 @@ const ColorPickerApp: FC<{ user: User | null; onLogin: (user: User) => void; onL
                                 <span>{isBlurring ? 'Exit' : 'Blur'}</span>
                             </button>
                         </div>
+                        {/* Download Button */}
+                        <button
+                            onClick={handleDownloadImage}
+                            className="w-full mt-2 flex items-center justify-center gap-2 p-2 rounded-md bg-yellow-500 hover:bg-yellow-600 transition-colors font-semibold text-white"
+                            disabled={!image}
+                        >
+                            <Icon path={ICONS.SAVE} className="h-5 w-5" />
+                            <span>Download Edited Image</span>
+                        </button>
                     </div>
                 )}
                 
