@@ -188,6 +188,9 @@ const PrivacyContent: FC = () => (
 // --- Main Color Picker Component ---
 
 const ColorPickerApp: FC<{ user: User | null; onLogin: (user: User) => void; onLogout: () => void; showLoginModal: boolean; setShowLoginModal: (show: boolean) => void }> = ({ user, onLogin, onLogout, showLoginModal, setShowLoginModal }) => {
+    // Download format selection state
+    const [showFormatOptions, setShowFormatOptions] = useState(false);
+    const [selectedFormat, setSelectedFormat] = useState('png');
     const [image, setImage] = useState<HTMLImageElement | null>(null);
     const [zoom, setZoom] = useState(1);
     const [pan, setPan] = useState<Point>({ x: 0, y: 0 });
@@ -250,8 +253,8 @@ const ColorPickerApp: FC<{ user: User | null; onLogin: (user: User) => void; onL
     }, []);
 
     // --- Drawing Logic ---
-    // Download handler
-    const handleDownloadImage = () => {
+    // Download handler with format
+    const handleDownloadImage = (format: string = 'png') => {
         if (!image) return;
         const canvas = document.createElement('canvas');
         canvas.width = image.width;
@@ -261,10 +264,34 @@ const ColorPickerApp: FC<{ user: User | null; onLogin: (user: User) => void; onL
             ctx.drawImage(image, 0, 0);
             if (sketchCanvasRef.current) ctx.drawImage(sketchCanvasRef.current, 0, 0);
         }
-        const url = canvas.toDataURL('image/png');
+        let mimeType = 'image/png';
+        let ext = 'png';
+        switch (format) {
+            case 'jpeg':
+            case 'jpg':
+                mimeType = 'image/jpeg';
+                ext = 'jpg';
+                break;
+            case 'webp':
+                mimeType = 'image/webp';
+                ext = 'webp';
+                break;
+            case 'bmp':
+                mimeType = 'image/bmp';
+                ext = 'bmp';
+                break;
+            case 'gif':
+                mimeType = 'image/gif';
+                ext = 'gif';
+                break;
+            default:
+                mimeType = 'image/png';
+                ext = 'png';
+        }
+        const url = canvas.toDataURL(mimeType);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'edited-image.png';
+        link.download = `edited-image.${ext}`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -1277,15 +1304,45 @@ const ColorPickerApp: FC<{ user: User | null; onLogin: (user: User) => void; onL
                                 <span>{isBlurring ? 'Exit' : 'Blur'}</span>
                             </button>
                         </div>
-                        {/* Download Button */}
-                        <button
-                            onClick={handleDownloadImage}
-                            className="w-full mt-2 flex items-center justify-center gap-2 p-2 rounded-md bg-yellow-500 hover:bg-yellow-600 transition-colors font-semibold text-white"
-                            disabled={!image}
-                        >
-                            <Icon path={ICONS.SAVE} className="h-5 w-5" />
-                            <span>Download Edited Image</span>
-                        </button>
+                        {/* Download Button with Format Selection */}
+                        <div className="w-full mt-2 flex flex-col gap-2">
+                            <button
+                                onClick={() => setShowFormatOptions(true)}
+                                className="flex items-center justify-center gap-2 p-2 rounded-md bg-yellow-500 hover:bg-yellow-600 transition-colors font-semibold text-white"
+                                disabled={!image}
+                            >
+                                <Icon path={ICONS.SAVE} className="h-5 w-5" />
+                                <span>Download Edited Image</span>
+                            </button>
+                            {showFormatOptions && (
+                                <div className="mt-2 bg-gray-800 p-3 rounded shadow-lg flex flex-col gap-2">
+                                    <label className="text-gray-300 font-semibold mb-1">Select Format:</label>
+                                    <select
+                                        value={selectedFormat}
+                                        onChange={e => setSelectedFormat(e.target.value)}
+                                        className="p-2 rounded bg-gray-700 text-white"
+                                    >
+                                        <option value="png">PNG</option>
+                                        <option value="jpeg">JPG</option>
+                                        <option value="webp">WebP</option>
+                                        <option value="bmp">BMP</option>
+                                        <option value="gif">GIF</option>
+                                    </select>
+                                    <button
+                                        onClick={() => { handleDownloadImage(selectedFormat); setShowFormatOptions(false); }}
+                                        className="mt-2 p-2 rounded bg-green-600 hover:bg-green-700 text-white font-semibold"
+                                    >
+                                        Download as {selectedFormat.toUpperCase()}
+                                    </button>
+                                    <button
+                                        onClick={() => setShowFormatOptions(false)}
+                                        className="mt-1 p-2 rounded bg-gray-600 hover:bg-gray-700 text-white text-sm"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
                 
@@ -1558,8 +1615,26 @@ const ColorPickerApp: FC<{ user: User | null; onLogin: (user: User) => void; onL
               >
                 <h2 style={{ color: 'rgb(129 140 248)' }}>Terms & Conditions</h2>
                 <p>
-                  Welcome to ColorPickPro+Erase & Edit!<br />
-                  By using our tool, you agree to the following terms and conditions. Please read them carefully before using our service.
+                                    Welcome to ColorPickPro+Erase & Edit!<br />
+                                    By using our tool, you agree to the following terms and conditions. Please read them carefully before using our service.
+                                    <br />
+                                    <div style={{
+                                        background: '#fef3c7',
+                                        border: '1px solid #f59e42',
+                                        color: '#b45309',
+                                        padding: '12px',
+                                        borderRadius: '8px',
+                                        margin: '16px 0',
+                                        fontWeight: 'bold',
+                                        fontSize: '1rem',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                                    }}>
+                                        <span role="alert" style={{ display: 'block', textAlign: 'center' }}>
+                                            <strong>Note:</strong><br />
+                                            If the object is not removed perfectly the first time, try erasing the same area multiple times.<br />
+                                            Each pass improves the result and gives you a cleaner, more precise removal.
+                                        </span>
+                                    </div>
                 </p>
                 <ol>
                   <li>
