@@ -1241,7 +1241,7 @@ const ColorPickerApp: FC<{ user: User | null; onLogin: (user: User) => void; onL
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         {/* <Icon path={ICONS.LOGO} className="h-8 w-8 text-indigo-400" /> */}
-                        <img src="/logo.png" alt="Logo" className="h-28 w-28 mr-2" onClick={() => window.location.reload()} />
+                        <img src="./public/logo.png" alt="Logo" className="h-28 w-28 mr-2" onClick={() => window.location.reload()} />
                         <h1 className="text-2xl font-extrabold text-indigo-400" onClick={() => window.location.reload()} >
                           <sup>AI</sup><sub>Pixnerase</sub>
                         </h1>
